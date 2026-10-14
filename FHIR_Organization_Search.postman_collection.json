@@ -1,0 +1,1380 @@
+{
+  "info": {
+    "_postman_id": "c1f8a840-798b-4bf1-a5fa-fhir-org-search",
+    "name": "FHIR R4 Organization API & Search",
+    "description": "Comprehensive Postman test collection for FHIR R4 Organization resource and all official search parameters from https://www.hl7.org/fhir/R4/organization.html#search, including :missing modifiers, full schema creation, and dual content negotiation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "rootOrgId",
+      "value": "190000",
+      "type": "string"
+    },
+    {
+      "key": "childOrgId",
+      "value": "190001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Setup & Create Organizations",
+      "item": [
+        {
+          "name": "Create Root Organization (Full FHIR R4 Structure)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "var orgId = json.id || json.organization_id;",
+                  "if (orgId) {",
+                  "    pm.collectionVariables.set('rootOrgId', orgId.toString());",
+                  "    pm.environment.set('rootOrgId', orgId.toString());",
+                  "    console.log('Saved rootOrgId:', orgId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Organization\",\n  \"name\": \"St. Jude Children's Research Hospital\",\n  \"active\": true,\n  \"alias\": [\n    \"St. Jude\",\n    \"SJCRH\"\n  ],\n  \"identifier\": [\n    {\n      \"use\": \"official\",\n      \"type\": {\n        \"coding\": [\n          {\n            \"system\": \"http://terminology.hl7.org/CodeSystem/v2-0203\",\n            \"code\": \"PRN\",\n            \"display\": \"Provider number\"\n          }\n        ],\n        \"text\": \"Provider number\"\n      },\n      \"system\": \"http://hl7.org/fhir/sid/us-npi\",\n      \"value\": \"9876543210\"\n    }\n  ],\n  \"type\": [\n    {\n      \"coding\": [\n        {\n          \"system\": \"http://terminology.hl7.org/CodeSystem/organization-type\",\n          \"code\": \"prov\",\n          \"display\": \"Healthcare Provider\"\n        }\n      ],\n      \"text\": \"Healthcare Provider\"\n    }\n  ],\n  \"telecom\": [\n    {\n      \"system\": \"phone\",\n      \"value\": \"+1-800-822-6344\",\n      \"use\": \"work\",\n      \"rank\": 1\n    }\n  ],\n  \"address\": [\n    {\n      \"use\": \"work\",\n      \"type\": \"both\",\n      \"text\": \"262 Danny Thomas Place, Memphis, TN 38105\",\n      \"line\": [\n        \"262 Danny Thomas Place\"\n      ],\n      \"city\": \"Memphis\",\n      \"district\": \"Shelby\",\n      \"state\": \"TN\",\n      \"postal_code\": \"38105\",\n      \"country\": \"USA\"\n    }\n  ],\n  \"part_of\": null,\n  \"contact\": [\n    {\n      \"purpose\": {\n        \"coding\": [\n          {\n            \"system\": \"http://terminology.hl7.org/CodeSystem/contactentity-type\",\n            \"code\": \"ADMIN\",\n            \"display\": \"Administrative\"\n          }\n        ],\n        \"text\": \"Administrative Contact\"\n      },\n      \"name\": {\n        \"use\": \"official\",\n        \"text\": \"Dr. James Downing\",\n        \"family\": \"Downing\",\n        \"given\": [\n          \"James\"\n        ],\n        \"prefix\": [\n          \"Dr.\"\n        ]\n      },\n      \"telecom\": [\n        {\n          \"system\": \"email\",\n          \"value\": \"james.downing@stjude.org\",\n          \"use\": \"work\"\n        }\n      ],\n      \"address\": {\n        \"line\": [\n          \"262 Danny Thomas Place, Administration\"\n        ],\n        \"city\": \"Memphis\",\n        \"state\": \"TN\",\n        \"postal_code\": \"38105\"\n      }\n    }\n  ],\n  \"endpoint\": [\n    {\n      \"reference\": \"Endpoint/ep-stjude-1\",\n      \"display\": \"St. Jude FHIR API Gateway\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Child Organization (Linked via part_of)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "var orgId = json.id || json.organization_id;",
+                  "if (orgId) {",
+                  "    pm.collectionVariables.set('childOrgId', orgId.toString());",
+                  "    pm.environment.set('childOrgId', orgId.toString());",
+                  "    console.log('Saved childOrgId:', orgId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Organization\",\n  \"name\": \"St. Jude Pediatric Oncology Wing\",\n  \"active\": false,\n  \"alias\": [\n    \"Pediatric Oncology\"\n  ],\n  \"identifier\": [\n    {\n      \"use\": \"secondary\",\n      \"system\": \"urn:stjude:dept\",\n      \"value\": \"DEPT-ONC-01\"\n    }\n  ],\n  \"type\": [\n    {\n      \"coding\": [\n        {\n          \"system\": \"http://terminology.hl7.org/CodeSystem/organization-type\",\n          \"code\": \"dept\",\n          \"display\": \"Hospital Department\"\n        }\n      ]\n    }\n  ],\n  \"telecom\": [\n    {\n      \"system\": \"phone\",\n      \"value\": \"+1-800-822-0000\",\n      \"use\": \"work\"\n    }\n  ],\n  \"address\": [\n    {\n      \"use\": \"billing\",\n      \"line\": [\n        \"262 Danny Thomas Place, Pavilion B\"\n      ],\n      \"city\": \"Memphis\",\n      \"state\": \"TN\",\n      \"postal_code\": \"38105\",\n      \"country\": \"USA\"\n    }\n  ],\n  \"part_of\": \"{{rootOrgId}}\",\n  \"contact\": [],\n  \"endpoint\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - FHIR Organization Search Parameters (HL7 R4)",
+      "item": [
+        {
+          "name": "Search by _id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?_id={{rootOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "_id",
+                  "value": "{{rootOrgId}}"
+                }
+              ]
+            },
+            "description": "Logical id of this artifact (Resource.id)"
+          }
+        },
+        {
+          "name": "Search by _id (multiple comma-separated OR)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?_id={{rootOrgId}},{{childOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "_id",
+                  "value": "{{rootOrgId}},{{childOrgId}}"
+                }
+              ]
+            },
+            "description": "Matches either ID"
+          }
+        },
+        {
+          "name": "Search by active (active=true)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?active=true&name=St. Jude",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": "St. Jude"
+                }
+              ]
+            },
+            "description": "Is organization record active"
+          }
+        },
+        {
+          "name": "Search by active (active=false)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?active=false&name=Pediatric",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "false"
+                },
+                {
+                  "key": "name",
+                  "value": "Pediatric"
+                }
+              ]
+            },
+            "description": "Inactive organization"
+          }
+        },
+        {
+          "name": "Search by name (partial match)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?name=St. Jude",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "St. Jude"
+                }
+              ]
+            },
+            "description": "Matches Organization.name or alias"
+          }
+        },
+        {
+          "name": "Search by name (alias match)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?name=SJCRH",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "SJCRH"
+                }
+              ]
+            },
+            "description": "Matches Organization.alias"
+          }
+        },
+        {
+          "name": "Search by name:exact modifier",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?name:exact=St. Jude Children's Research Hospital",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "name:exact",
+                  "value": "St. Jude Children's Research Hospital"
+                }
+              ]
+            },
+            "description": "Exact string match"
+          }
+        },
+        {
+          "name": "Search by name:contains modifier",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?name:contains=Children",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "name:contains",
+                  "value": "Children"
+                }
+              ]
+            },
+            "description": "Substring match"
+          }
+        },
+        {
+          "name": "Search by phonetic",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?phonetic=Jude",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "phonetic",
+                  "value": "Jude"
+                }
+              ]
+            },
+            "description": "Phonetic matching on name"
+          }
+        },
+        {
+          "name": "Search by identifier (value only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?identifier=9876543210",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "9876543210"
+                }
+              ]
+            },
+            "description": "Matches identifier across any system"
+          }
+        },
+        {
+          "name": "Search by identifier (system|value)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?identifier=http://hl7.org/fhir/sid/us-npi|9876543210",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "http://hl7.org/fhir/sid/us-npi|9876543210"
+                }
+              ]
+            },
+            "description": "Matches specific system and value"
+          }
+        },
+        {
+          "name": "Search by identifier (system only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?identifier=http://hl7.org/fhir/sid/us-npi|",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "http://hl7.org/fhir/sid/us-npi|"
+                }
+              ]
+            },
+            "description": "Matches any identifier with this system"
+          }
+        },
+        {
+          "name": "Search by type (code only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?type=prov",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "prov"
+                }
+              ]
+            },
+            "description": "Matches code prov"
+          }
+        },
+        {
+          "name": "Search by type (system|code)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?type=http://terminology.hl7.org/CodeSystem/organization-type|prov",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "http://terminology.hl7.org/CodeSystem/organization-type|prov"
+                }
+              ]
+            },
+            "description": "Matches system and code"
+          }
+        },
+        {
+          "name": "Search by address (general string)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address=Danny Thomas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address",
+                  "value": "Danny Thomas"
+                }
+              ]
+            },
+            "description": "Matches line, city, state, country, or postalCode"
+          }
+        },
+        {
+          "name": "Search by address-city",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address-city=Memphis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address-city",
+                  "value": "Memphis"
+                }
+              ]
+            },
+            "description": "City specified in address"
+          }
+        },
+        {
+          "name": "Search by address-state",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address-state=TN",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address-state",
+                  "value": "TN"
+                }
+              ]
+            },
+            "description": "State specified in address"
+          }
+        },
+        {
+          "name": "Search by address-postalcode",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address-postalcode=38105",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address-postalcode",
+                  "value": "38105"
+                }
+              ]
+            },
+            "description": "Postal code specified in address"
+          }
+        },
+        {
+          "name": "Search by address-country",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address-country=USA",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address-country",
+                  "value": "USA"
+                }
+              ]
+            },
+            "description": "Country specified in address"
+          }
+        },
+        {
+          "name": "Search by address-use (work)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address-use=work",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address-use",
+                  "value": "work"
+                }
+              ]
+            },
+            "description": "Address use code"
+          }
+        },
+        {
+          "name": "Search by address-use (billing)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?address-use=billing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "address-use",
+                  "value": "billing"
+                }
+              ]
+            },
+            "description": "Address use billing"
+          }
+        },
+        {
+          "name": "Search by endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?endpoint=ep-stjude-1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "endpoint",
+                  "value": "ep-stjude-1"
+                }
+              ]
+            },
+            "description": "Technical endpoint reference"
+          }
+        },
+        {
+          "name": "Search by partof reference",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?partof={{rootOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "partof",
+                  "value": "{{rootOrgId}}"
+                }
+              ]
+            },
+            "description": "Parent organization reference"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Missing Value Searches (:missing modifier)",
+      "item": [
+        {
+          "name": "partof:missing=true (Root Orgs with NO parent)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?partof:missing=true&name=St. Jude",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "partof:missing",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": "St. Jude"
+                }
+              ]
+            },
+            "description": "Returns organizations that do not have a parent (part_of is null or missing)"
+          }
+        },
+        {
+          "name": "partof:missing=false (Child Orgs WITH parent)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?partof:missing=false&name=Pediatric",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "partof:missing",
+                  "value": "false"
+                },
+                {
+                  "key": "name",
+                  "value": "Pediatric"
+                }
+              ]
+            },
+            "description": "Returns organizations that have a parent defined"
+          }
+        },
+        {
+          "name": "endpoint:missing=true (Organizations without endpoint)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?endpoint:missing=true&name=Pediatric",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "endpoint:missing",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": "Pediatric"
+                }
+              ]
+            },
+            "description": "Returns organizations that have no technical endpoint configured"
+          }
+        },
+        {
+          "name": "endpoint:missing=false (Organizations WITH endpoint)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?endpoint:missing=false&name=St. Jude",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "endpoint:missing",
+                  "value": "false"
+                },
+                {
+                  "key": "name",
+                  "value": "St. Jude"
+                }
+              ]
+            },
+            "description": "Returns organizations that have at least one technical endpoint"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Combined Searches & Advanced Features",
+      "item": [
+        {
+          "name": "Multi-parameter Combined Search (name + active + address-city)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?name=St. Jude&active=true&address-city=Memphis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "St. Jude"
+                },
+                {
+                  "key": "active",
+                  "value": "true"
+                },
+                {
+                  "key": "address-city",
+                  "value": "Memphis"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FHIR POST _search (application/x-www-form-urlencoded)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Pediatric",
+                  "type": "text"
+                },
+                {
+                  "key": "active",
+                  "value": "false",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/_search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "_search"
+              ]
+            }
+          }
+        },
+        {
+          "name": "FHIR POST _search (application/json)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"St. Jude\", \"active\": \"true\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/_search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "_search"
+              ]
+            }
+          }
+        },
+        {
+          "name": "FHIR Content Negotiation: Accept application/fhir+json (Bundle)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Plain JSON Content Negotiation: Accept application/json",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "FHIR Pagination (_count & _offset)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?_count=5&_offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "_count",
+                  "value": "5"
+                },
+                {
+                  "key": "_offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FHIR Sorting (_sort=name ascending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?_sort=name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "_sort",
+                  "value": "name"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FHIR Sorting (_sort=-name descending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/?_sort=-name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "_sort",
+                  "value": "-name"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - CRUD Operations & Lookup",
+      "item": [
+        {
+          "name": "Get Organization by ID (FHIR format)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/{{rootOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "{{rootOrgId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Organization by ID (Plain JSON format)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/{{rootOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "{{rootOrgId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patch Organization (Partial Update)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/fhir+json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alias\": [\"St. Jude\", \"SJCRH\", \"Global Center\"]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/{{rootOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "{{rootOrgId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Organization",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/{{childOrgId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "{{childOrgId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

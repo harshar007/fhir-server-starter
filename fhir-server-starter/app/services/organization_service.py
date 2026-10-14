@@ -14,6 +14,7 @@ from app.repository.organization_repository import OrganizationRepository
 from app.schemas.organization import (
     OrganizationCreateSchema,
     OrganizationPatchSchema,
+    OrganizationSearchParams,
     ReferenceSchema,
 )
 
@@ -52,7 +53,7 @@ class OrganizationService:
     @staticmethod
     async def _validate(fhir_resource: dict) -> None:
         """Raises FhirValidationError (422) if `fhir_resource` fails base
-        R4 validation — see app/fhir/validation/base_r4.py."""
+        R4 validation — see app/validation/base_r4.py."""
         errors = validate_base_r4("Organization", fhir_resource)
         if errors:
             raise FhirValidationError(errors)
@@ -116,8 +117,14 @@ class OrganizationService:
             raise NotFoundError(f"Organization {organization_id} not found")
         return org
 
-    async def list_organizations(self, *, limit: int, offset: int) -> tuple[list[OrganizationModel], int]:
-        return await self.repository.list(limit=limit, offset=offset)
+    async def list_organizations(
+        self,
+        *,
+        params: OrganizationSearchParams | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[OrganizationModel], int]:
+        return await self.repository.list(params=params, limit=limit, offset=offset)
 
     async def patch_organization(
         self, organization_id: int, payload: OrganizationPatchSchema, updated_by: str | None
