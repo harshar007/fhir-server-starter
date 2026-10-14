@@ -1,0 +1,29 @@
+dev:
+    uv run uvicorn app.main:app --port 8000 --reload
+
+test:
+    uv run pytest tests/ -v
+
+test-q:
+    uv run pytest tests/ -q
+
+migrate:
+    uv run alembic upgrade head
+
+migrate-down:
+    uv run alembic downgrade -1
+
+migrate-generate NAME:
+    uv run alembic revision --autogenerate -m "{{NAME}}"
+
+migrate-status:
+    uv run alembic current
+
+docker-up:
+    docker compose up -d
+
+docker-down:
+    docker compose down
+
+docker-logs:
+    docker compose logs -f

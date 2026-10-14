@@ -1,0 +1,84 @@
+### 1. organization.py
+
+  • What changed:
+      • Replaced the monolithic single-column fhir_data: JSONB model with OrganizationV2Model from your core_v2.py.
+      • Added public sequence organization_v2_id_seq starting at 190000.
+      • Added dedicated JSONB array columns: alias, identifier, type, telecom, address, contact, and endpoint.
+      • Added multi-tenant column org_id (indexed, nullable=False).
+      • Added hierarchy fields: partof_type, partof_id, partof_display, and part_of.
+      • Configured 6 PostgreSQL GIN indexes (jsonb_path_ops) on the JSONB columns.
+      • Kept OrganizationModel = OrganizationV2Model alias for backwards compatibility with existing codebase imports.
+
+  ──────
+  ### 2. organization.py
+
+  • What changed:
+      • Added ReferenceSchema (reference, type, display).
+      • Updated OrganizationCreateSchema to include optional org_id, endpoint: list[ReferenceSchema], and polymorphic part_of: int | ReferenceSchema | None.
+      • Updated OrganizationPatchSchema to support partial updates to endpoint, org_id, and part_of.
+      • Updated PlainOrganizationResponse to expose org_id, endpoint, partof_id, and partof_display.
+      • Updated FHIROrganizationSchema to document endpoint in OpenAPI documentation.
+
+  ──────
+  ### 3. fhir.py
+
+  • What changed:
+      • Added fhir_endpoint() mapper for FHIR endpoint references.
+      • Added _build_part_of() to handle both integer IDs and reference dicts.
+      • Updated to_fhir_organization() to read directly from the new discrete columns instead of unpacking a single JSON blob.
+      • Updated preview_fhir_organization() to accept payload data for pre-persistence validation.
+
+  ──────
+  ### 4. plain.py
+
+  • What changed:
+      • Refactored to_plain_organization() to map directly from model columns (model.org_id, model.endpoint, model.partof_id, model.partof_display, model.
+      alias, model.telecom, etc.).
+
+  ──────
+  ### 5. organization_repository.py
+
+  • What changed:
+      • Added from __future__ import annotations for Python 3.12 type annotation scoping.
+      • Rewrote create() to insert individual columns (org_id, name, active, alias, identifier, type, telecom, address, contact, endpoint, part_of,
+      partof_id, partof_type, partof_display, created_by, updated_by).
+      • Rewrote patch() to selectively update each column without shallow-merging an untyped dictionary.
+
+  ──────
+  ### 6. organization_service.py
+
+  • What changed:
+      • Added from __future__ import annotations.
+      • Added _parse_part_of() to normalize parent references into both JSON and scalar columns (partof_id, partof_type, partof_display).
+      • Updated create_organization() to resolve tenant org_id (payload.org_id -> actor.org_id -> "default"), validate the preview FHIR R4 schema, and pass
+      discrete fields to the repository.
+      • Updated patch_organization() to merge and validate the preview resource before patching individual columns.
+
+  ──────
+  ### 7. organization.py
+
+  • What changed:
+      • In post /organizations, passed created_by=actor.sub and org_id=actor.org_id into service.create_organization().
+
+  ──────
+  ### 8. 0001_initial_schema.py
+
+  • What changed:
+      • Updated Alembic migration to create organization_v2_pub_seq (start 190000).
+      • Defined the organization_v2 table with BigInteger IDs, org_id, dedicated JSONB columns, partof_* fields, and the 6 GIN indexes (jsonb_path_ops).
+
+  ──────
+  ### 9. conftest.py
+
+  • What changed:
+      • Added compiler rule @compiles(BigInteger, "sqlite") so SQLite in-memory test databases use INTEGER for primary keys (ensuring autoincrement works
+      under SQLite).
+      • Updated _strip_server_defaults() to strip PostgreSQL-specific '[]'::jsonb default casting during SQLite test execution.
+
+  ──────
+  ### 10. test_organization.py
+
+  • What changed:
+      • Added test_create_organization_v2_full_features_and_sequence testing endpoint, alias, org_id, sequence range (>= 190000), and both plain JSON & FHIR
+      R4 responses.
+      • Added test_patch_organization_v2_dedicated_columns testing partial updates on the new discrete columns.
